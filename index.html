@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>폴리 컴패스 (Poli Compass) | 정치·선거 시뮬레이터</title>
+    
+    <!-- Google Fonts: Outfit & Noto Sans KR -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- CSS Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app" class="app-container">
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="logo-area">
+                    <span class="logo-emoji">👑</span>
+                    <div class="logo-text">
+                        <h1>폴리 컴패스 (Poli Compass)</h1>
+                        <p class="subtitle">사회 수업용 정치·선거 시뮬레이터</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <!-- Timeline Steps -->
+                <div class="timeline">
+                    <div class="timeline-step active" data-step="1" id="step-nav-1">
+                        <span class="step-num">1</span>
+                        <span class="step-label">정당 등록</span>
+                    </div>
+                    <div class="timeline-step" data-step="2" id="step-nav-2">
+                        <span class="step-num">2</span>
+                        <span class="step-label">유권자 공개</span>
+                    </div>
+                    <div class="timeline-step" data-step="3" id="step-nav-3">
+                        <span class="step-num">3</span>
+                        <span class="step-label">예산 배분</span>
+                    </div>
+                    <div class="timeline-step" data-step="4" id="step-nav-4">
+                        <span class="step-num">4</span>
+                        <span class="step-label">1차 여론조사</span>
+                    </div>
+                    <div class="timeline-step" data-step="5" id="step-nav-5">
+                        <span class="step-num">5</span>
+                        <span class="step-label">정책 수정</span>
+                    </div>
+                    <div class="timeline-step" data-step="6" id="step-nav-6">
+                        <span class="step-num">6</span>
+                        <span class="step-label">단일화/합당</span>
+                    </div>
+                    <div class="timeline-step" data-step="7" id="step-nav-7">
+                        <span class="step-num">7</span>
+                        <span class="step-label">최종 개표</span>
+                    </div>
+                    <div class="timeline-step" data-step="8" id="step-nav-8">
+                        <span class="step-num">8</span>
+                        <span class="step-label">결과 분석</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button id="btn-policy-guide" class="btn btn-secondary" style="margin-right: 6px; font-weight: 700; height: 40px; padding: 0 16px; font-size: 14.5px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; background-color: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.4); color: #c084fc;">💡 이념 가이드</button>
+                <button id="btn-rules" class="btn btn-secondary" style="margin-right: 6px; font-weight: 700; height: 40px; padding: 0 16px; font-size: 14.5px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0;">🎮 활동 규칙</button>
+                <button id="btn-wrapup" class="btn btn-accent-blue" style="margin-right: 6px; font-weight: 700; height: 40px; padding: 0 16px; font-size: 14.5px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0;">🎓 수업 마무리</button>
+                <div class="country-badge" id="country-badge-display" style="display: none;">
+                    <span class="badge-icon">🏛️</span>
+                    <span id="display-country-name">세종국</span>
+                </div>
+                <button id="btn-fullscreen" class="btn-icon-only" title="전체화면" style="height: 40px; width: 40px; flex-shrink: 0;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                </button>
+                <button id="btn-settings" class="btn-icon-only" title="설정" style="height: 40px; width: 40px; flex-shrink: 0;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="app-main">
+            <!-- Left Side: Simulation Board (Spectrum Map) -->
+            <section class="simulation-view">
+                <!-- Info Guide Card -->
+                <div class="guide-banner" id="guide-banner">
+                    <span class="guide-indicator">알림</span>
+                    <p class="guide-text" id="guide-text">정당을 등록하여 시뮬레이션을 시작하세요.</p>
+                </div>
+
+                <div class="spectrum-container">
+                    <!-- Axis Labels -->
+                    <div class="axis-label axis-top">사회 자유 / 다양성 중시</div>
+                    <div class="axis-label axis-bottom">사회 질서 / 규제 중시</div>
+                    <div class="axis-label axis-left">세금 확대 / 복지 강화</div>
+                    <div class="axis-label axis-right">세금 인하 / 시장 자유</div>
+                    
+                    <!-- Grid Background and Nodes -->
+                    <div class="spectrum-map" id="spectrum-map">
+                        <div class="grid-line grid-v"></div>
+                        <div class="grid-line grid-h"></div>
+                        <div class="axis-marker center-marker">중도</div>
+                        
+                        <!-- 현실 정책 매칭 4분점 헬프 앵커 -->
+                        <div class="policy-anchor anchor-top-left" data-quadrant="2" style="position: absolute; left: 22%; top: 22%; transform: translate(-50%, -50%); z-index: 10;">
+                            <button class="btn-policy-info" onclick="showQuadrantInfo(2)" title="자유/다양성 + 복지확대 성향 설명">💡 진보주의</button>
+                        </div>
+                        <div class="policy-anchor anchor-top-right" data-quadrant="1" style="position: absolute; left: 78%; top: 22%; transform: translate(-50%, -50%); z-index: 10;">
+                            <button class="btn-policy-info" onclick="showQuadrantInfo(1)" title="자유/다양성 + 시장자율 성향 설명">💡 자유지상주의</button>
+                        </div>
+                        <div class="policy-anchor anchor-bottom-left" data-quadrant="3" style="position: absolute; left: 22%; top: 78%; transform: translate(-50%, -50%); z-index: 10;">
+                            <button class="btn-policy-info" onclick="showQuadrantInfo(3)" title="사회질서/규제 + 복지확대 성향 설명">💡 공동체주의</button>
+                        </div>
+                        <div class="policy-anchor anchor-bottom-right" data-quadrant="4" style="position: absolute; left: 78%; top: 78%; transform: translate(-50%, -50%); z-index: 10;">
+                            <button class="btn-policy-info" onclick="showQuadrantInfo(4)" title="사회질서/규제 + 시장자율 성향 설명">💡 보수주의</button>
+                        </div>
+                        
+                        <!-- Dynamic Elements: Voters & Parties will be rendered here -->
+                        <div id="voters-layer" class="voters-layer"></div>
+                        <div id="parties-layer" class="parties-layer"></div>
+                        <svg id="paths-layer" class="paths-layer"></svg>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Leaderboard & Dashboard -->
+            <section class="dashboard-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">📊 실시간 판세 판독판</h2>
+                    <div class="stats-summary" id="stats-summary">
+                        등록된 정당이 없습니다.
+                    </div>
+                </div>
+                
+                <!-- Party Leaderboard Cards -->
+                <div class="party-cards-container" id="party-list">
+                    <!-- Dynamic party items -->
+                </div>
+                
+                <!-- Small Class Stats / Info -->
+                <div class="system-stats">
+                    <div class="stat-box">
+                        <span class="stat-label">참여 유권자</span>
+                        <span class="stat-val" id="val-voter-count">100명</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">선거 총 의석</span>
+                        <span class="stat-val" id="val-seat-count">100석</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">무당층 비율</span>
+                        <span class="stat-val" id="val-undecided-pct">0%</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Controls Panel -->
+        <footer class="app-controls">
+            <!-- Tabs/Input Panel according to state -->
+            <div class="controls-workspace">
+                
+                <!-- STAGE 1: Party Registration -->
+                <div class="control-panel-tab" id="panel-stage-1">
+                    <div class="tab-header">
+                        <h3>🎨 학생 정당 등록하기</h3>
+                        <p class="tab-desc">학생 모둠별로 정당의 기본 이념 성향을 설정해 줍니다. (최소 2개, 최대 6개)</p>
+                    </div>
+                    <div class="tab-body registration-body">
+                        <div class="parties-grid-setup" id="parties-setup-list">
+                            <!-- Party Inputs -->
+                        </div>
+                        <div class="registration-actions">
+                            <button id="btn-add-party" class="btn btn-secondary">➕ 정당 추가 (+)</button>
+                            <button id="btn-quick-start" class="btn btn-accent-blue">🚀 빠른 시작 (샘플 4개)</button>
+                            <button id="btn-submit-parties" class="btn btn-primary btn-large">💾 정당 설정 완료</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 2: Voter Reveal -->
+                <div class="control-panel-tab hidden" id="panel-stage-2">
+                    <div class="tab-header">
+                        <h3>👥 가상 국가 유권자 지형 공개</h3>
+                        <p class="tab-desc">100명의 유권자들이 본인들의 정치 성향 좌표에 흩어져 있습니다. 각 그룹의 성향과 관심사를 분석하세요.</p>
+                    </div>
+                    <div class="tab-body text-center-body">
+                        <div class="info-alert">
+                            <span class="info-icon">💡</span>
+                            <div class="info-message">
+                                <strong>[교사용 팁]</strong> 2D 좌표계를 가리키며 유권자 집단의 밀집 부위(20대 진보, 60대 보수, 40대 중도 등)에 대해 설명해 주세요.<br>
+                                점에 마우스를 올리면 각 유권자의 상세 관심 정책(주거, 연금, 세금 등)을 실시간으로 읽어볼 수 있습니다.
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button id="btn-generate-voters" class="btn btn-secondary">🎲 유권자 지형 재배치</button>
+                            <button id="btn-to-stage3" class="btn btn-primary btn-large">💰 정책 예산 배분 단계로 이동</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 3: Budget Input -->
+                <div class="control-panel-tab hidden" id="panel-stage-3">
+                    <div class="tab-header">
+                        <h3>💰 정책 예산 배분 (총 100억 원)</h3>
+                        <p class="tab-desc">각 모둠이 토론해 온 정책별 예산 배분(총 100억)을 교사가 입력해 줍니다. <strong>100억 원을 정확히 채워야 완료됩니다!</strong></p>
+                    </div>
+                    <div class="tab-body budget-body">
+                        <div class="budget-party-selector" id="budget-party-selector-container">
+                            <!-- Party select chips -->
+                        </div>
+                        <div class="budget-input-form" id="budget-input-form-area">
+                            <!-- Budget inputs for selected party -->
+                        </div>
+                        <div class="budget-status-row">
+                            <div class="budget-progress-container">
+                                <span class="budget-progress-label">예산 배분 합계:</span>
+                                <div class="budget-progress-bar-bg">
+                                    <div class="budget-progress-bar-fill" id="budget-progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span class="budget-progress-text" id="budget-progress-text">0억 / 100억</span>
+                            </div>
+                            <button id="btn-save-budget" class="btn btn-success">💾 이 정당 예산 저장</button>
+                        </div>
+                        <div class="budget-actions-footer">
+                            <button id="btn-run-survey" class="btn btn-primary btn-large" disabled>📊 1차 여론조사 시뮬레이션 실행</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 4: Survey 1 Result -->
+                <div class="control-panel-tab hidden" id="panel-stage-4">
+                    <div class="tab-header">
+                        <h3>📈 1차 여론조사 결과 발표</h3>
+                        <p class="tab-desc">유권자들과 정당 사이의 정책-이념적 거리를 반영하여, 각 유권자들이 지지 정당을 선택한 결과입니다.</p>
+                    </div>
+                    <div class="tab-body text-center-body">
+                        <div class="survey-report-card">
+                            <div id="survey-result-marquee" class="marquee-announcement">1차 여론조사 집계 완료!</div>
+                            <p class="survey-summary-text" id="survey-summary-text">결과를 발표합니다...</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button id="btn-to-stage5" class="btn btn-primary btn-large">✏️ 2차 정책 수정 단계로 이동</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 5: Policy Revision -->
+                <div class="control-panel-tab hidden" id="panel-stage-5">
+                    <div class="tab-header">
+                        <h3>✏️ 2차 정책 수정 및 중도층 공략</h3>
+                        <p class="tab-desc">1차 여론조사의 피드백을 통해 정당들은 예산을 재배분하여 지지층을 결집하거나 중도로 방향을 전환합니다.</p>
+                    </div>
+                    <div class="tab-body budget-body">
+                        <div class="budget-party-selector" id="revise-party-selector-container">
+                            <!-- Party select chips for stage 5 -->
+                        </div>
+                        <div class="budget-input-form" id="revise-input-form-area">
+                            <!-- Budget inputs for selected party stage 5 -->
+                        </div>
+                        <div class="budget-status-row">
+                            <div class="budget-progress-container">
+                                <span class="budget-progress-label">예산 배분 합계:</span>
+                                <div class="budget-progress-bar-bg">
+                                    <div class="budget-progress-bar-fill" id="revise-progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span class="budget-progress-text" id="revise-progress-text">0억 / 100억</span>
+                            </div>
+                            <button id="btn-save-revision" class="btn btn-success">💾 수정안 저장 및 경로 반영</button>
+                        </div>
+                        <div class="budget-actions-footer">
+                            <button id="btn-to-stage6" class="btn btn-primary btn-large">🤝 단일화/합당 협상 단계로 이동</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 6: Alliance / Merger -->
+                <div class="control-panel-tab hidden" id="panel-stage-6">
+                    <div class="tab-header">
+                        <h3>🤝 정당 간 후보 단일화 및 합당 협상</h3>
+                        <p class="tab-desc">지지율이 낮거나 지향점이 비슷한 정당들은 연대를 맺을 수 있습니다. 단, 합당에 따른 유권자의 표 이탈/유입을 조심하십시오!</p>
+                    </div>
+                    <div class="tab-body alliance-body">
+                        <div class="alliance-selector-grid">
+                            <div class="alliance-party-box">
+                                <label for="alliance-party-1">정당 A</label>
+                                <select id="alliance-party-1" class="form-control">
+                                    <!-- options dynamic -->
+                                </select>
+                            </div>
+                            <div class="alliance-vs">➕</div>
+                            <div class="alliance-party-box">
+                                <label for="alliance-party-2">정당 B</label>
+                                <select id="alliance-party-2" class="form-control">
+                                    <!-- options dynamic -->
+                                </select>
+                            </div>
+                            <div class="alliance-result-settings">
+                                <div>
+                                    <label for="alliance-new-name">합당 후 정당명</label>
+                                    <input type="text" id="alliance-new-name" class="form-control" placeholder="예: 미래통합당">
+                                </div>
+                                <div>
+                                    <label for="alliance-new-color">합당 후 정당 색상</label>
+                                    <input type="color" id="alliance-new-color" class="form-control color-picker" value="#9F7AEA">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alliance-disclaimer">
+                            💡 <strong>정치공학적 유의점:</strong> 두 당의 좌표와 정책 예산은 각각의 산술평균으로 합산되어 조정됩니다. 정체성이 희석될 경우 일부 극단 지지층이 기권(무당층)하거나 다른 당으로 이탈할 수 있습니다.
+                        </div>
+                        <div class="alliance-actions">
+                            <button id="btn-run-alliance" class="btn btn-accent-purple">🤝 단일화/합당 실행</button>
+                            <button id="btn-skip-alliance" class="btn btn-secondary">건너뛰기 (현 정당 체제 유지)</button>
+                            <button id="btn-run-final" class="btn btn-primary btn-large">🗳️ 최종 개표 시작</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 7: Final Vote & Election -->
+                <div class="control-panel-tab hidden" id="panel-stage-7">
+                    <div class="tab-header">
+                        <h3>🗳️ 최종 개표 방송 및 승자 선언</h3>
+                        <p class="tab-desc">왕좌를 차지하기 위한 마지막 승부입니다. 개표 애니메이션을 확인하세요.</p>
+                    </div>
+                    <div class="tab-body text-center-body">
+                        <div class="survey-report-card final-report">
+                            <div id="final-result-marquee" class="marquee-announcement final-marquee">국민들의 최종 선택은?</div>
+                            <p class="survey-summary-text" id="final-summary-text">최종 개표 진행 상황을 확인하세요.</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button id="btn-to-stage8" class="btn btn-primary btn-large">📊 최종 분석 및 수업 정리로 이동</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 8: Results & Discussion -->
+                <div class="control-panel-tab hidden" id="panel-stage-8">
+                    <div class="tab-header">
+                        <h3>📝 시뮬레이션 결과 종합 분석 및 토론</h3>
+                        <p class="tab-desc">오늘 게임을 통해 배운 민주주의 선거의 특징과 정당의 고민에 대해 토론해 봅시다.</p>
+                    </div>
+                    <div class="tab-body analysis-body">
+                        <div class="analysis-tabs-nav">
+                            <button class="analysis-tab-btn active" data-tab="stat-analysis">📈 통계 데이터</button>
+                            <button class="analysis-tab-btn" data-tab="debate-hints">💡 수업 토론 주제</button>
+                            <button class="analysis-tab-btn" data-tab="social-theories">📚 정치 이론 연결</button>
+                        </div>
+                        
+                        <div class="analysis-tab-content active" id="tab-stat-analysis">
+                            <div class="analysis-grid-layout">
+                                <div class="analysis-chart-box">
+                                    <h4>👥 연령대별 지지 정당 분포</h4>
+                                    <div class="age-distribution-chart" id="age-support-chart">
+                                        <!-- dynamic age supports -->
+                                    </div>
+                                </div>
+                                <div class="analysis-chart-box">
+                                    <h4>🏅 선거 결산 특이 데이터</h4>
+                                    <ul class="stats-highlights-list" id="stats-highlights">
+                                        <!-- dynamic highlight metrics -->
+                                    </ul>
+                                </div>
+                                <div class="analysis-chart-box" style="grid-column: span 2;">
+                                    <h4>🗳️ 선거 제도 및 사표(死票) 분석 리포트</h4>
+                                    <div class="electoral-analysis-report" id="electoral-analysis-container" style="display: flex; gap: 20px; background: rgba(255,255,255,0.02); border: 1.5px dashed var(--border-color); border-radius: 8px; padding: 18px; margin-top: 10px;">
+                                        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                                            <h5 style="margin: 0 0 10px 0; color: #a855f7; font-size: 16px; font-weight: 800;">📊 적용 선거 제도: <span id="lbl-elect-system-name" style="color: #ffffff;">비례대표제</span></h5>
+                                            <p style="margin: 0; font-size: 13.5px; color: var(--text-muted); line-height: 1.6;" id="lbl-elect-system-desc">득표율에 정비례하여 의석을 나누어 갖는 제도입니다. 사표 발생율이 낮고 소수 정당의 진입 장벽이 낮습니다.</p>
+                                        </div>
+                                        <div style="width: 220px; text-align: center; border-left: 1.5px solid var(--border-color); padding-left: 20px; display: flex; flex-direction: column; justify-content: center;">
+                                            <div style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 5px; font-weight: 700;">발생한 총 사표(死票) 비율</div>
+                                            <div style="font-size: 36px; font-weight: 900; color: #f43f5e;" id="lbl-wasted-votes-pct">0.0%</div>
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px; font-weight: 600;" id="lbl-wasted-votes-count">(0명 / 100명)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="analysis-tab-content hidden" id="tab-debate-hints">
+                            <div class="debate-questions">
+                                <div class="debate-card">
+                                    <h5>질문 1. 왜 정당들은 중도로 정책을 모으게 될까요?</h5>
+                                    <p>유권자가 가장 많이 몰려 있는 중도(이념 좌표 중앙)를 공략하는 것이 왜 선거 전략에 유리한지 중위투표자 정리와 결부하여 논해 봅니다.</p>
+                                </div>
+                                <div class="debate-card">
+                                    <h5>질문 2. 정체성(신념)을 유지한 극단 정당은 왜 선거에 어려움을 겪었나요?</h5>
+                                    <p>자신들만의 확실한 이념(예: 강한 규제나 전면 복지)을 지킨 정당이 지지층 결집에는 성공했지만, 왜 과반 의석 확보나 선거 승리에는 미치지 못했는지 알아봅시다.</p>
+                                </div>
+                                <div class="debate-card">
+                                    <h5>질문 3. 정당 간의 단일화/합당은 항상 성공적이었나요?</h5>
+                                    <p>단일화를 통해 세력은 커졌으나, 두 당의 성향이 뒤섞이면서 오히려 중도나 극단에 있던 유권자가 반감을 가지고 제3의 정당으로 이동하거나 투표를 포기하는 현상을 되짚어 봅니다.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-tab-content hidden" id="tab-social-theories">
+                            <div class="theory-grid">
+                                <div class="theory-box">
+                                    <h5>📐 앤서니 다운스(Anthony Downs)의 중위투표자 정리</h5>
+                                    <p>정치학자 다운스에 따르면 양당제 국가에서 정당들은 표를 극대화하기 위해 이념의 가운데(중위)에 있는 유권자들의 눈높이에 정책을 맞추게 됩니다. 이로 인해 두 정당의 정강정책이 점차 비슷해지는 현상이 발생합니다.</p>
+                                </div>
+                                <div class="theory-box">
+                                    <h5>⚔️ 정당 정체성 vs 선거 전략의 딜레마</h5>
+                                    <p>정당은 특정한 사회적 가치나 지지층을 대변하는 이익 결합체이지만, 정당의 존재 목적은 '집권'입니다. 표를 얻기 위해 당의 정체성을 희석하고 중도로 나아가는 것이 정당 민주주의에 긍정적인지 혹은 포퓰리즘인지 생각해 봅니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Global Footer Controls (Undo, Reset, Screen Capture, Hints) -->
+            <div class="controls-toolbar">
+                <div class="toolbar-left">
+                    <button id="btn-undo" class="btn btn-dark" disabled>
+                        <span>↩️ 이전 단계로 되돌리기</span>
+                    </button>
+                    <button id="btn-copy-summary" class="btn btn-dark" id="btn-copy-result" style="display: none;">
+                        <span>📋 결과 텍스트 복사</span>
+                    </button>
+                    <button id="btn-export-json" class="btn btn-dark" style="display: none;">
+                        <span>💾 데이터 내보내기 (JSON)</span>
+                    </button>
+                </div>
+                <div class="toolbar-center">
+                    <button id="btn-toggle-teacher-hint" class="btn btn-hint-toggle">
+                        💡 <span>교사용 수업 힌트 패널 열기</span>
+                    </button>
+                </div>
+                <div class="toolbar-right">
+                    <button id="btn-reset-game" class="btn btn-danger-outline">🔄 전체 리셋</button>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Teacher's Hint Floating Panel -->
+        <aside class="teacher-hint-panel hidden" id="teacher-hint-panel">
+            <div class="hint-header">
+                <h4>👨‍🏫 교사용 실시간 수업 발문 힌트</h4>
+                <button id="btn-close-hint" class="btn-close">&times;</button>
+            </div>
+            <div class="hint-body" id="teacher-hint-content">
+                <!-- Dynamically updated based on active stage -->
+                <p>정당 등록 단계입니다. 학생들에게 모둠별로 정당의 가치관과 색깔, 초기 경제/사회 성향을 정해보도록 지시하세요.</p>
+            </div>
+        </aside>
+
+        <!-- Settings Modal Overlay -->
+        <div class="modal-overlay hidden" id="settings-modal">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h3>⚙️ 교사용 시뮬레이터 세부 설정</h3>
+                    <button id="btn-close-settings" class="btn-close">&times;</button>
+                </div>
+                
+                <!-- PIN 인증 구역 -->
+                <div class="modal-body" id="settings-auth-area">
+                    <div style="text-align: center; padding: 20px 0;">
+                        <span style="font-size: 40px; display: block; margin-bottom: 15px;">🔒</span>
+                        <h4 style="color: #ffffff; font-size: 16px; margin-bottom: 10px;">교사용 설정 잠금 해제</h4>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">설정을 변경하려면 교사용 PIN 번호를 입력하십시오.</p>
+                        
+                        <div class="gateway-input-group" style="align-items: center; width: 100%;">
+                            <input type="password" id="settings-pin-input" placeholder="PIN 번호 입력" autocomplete="off" style="width: 80%; max-width: 280px; padding: 12px; font-size: 18px; letter-spacing: 4px; text-align: center; background-color: #111827; border: 2px solid #374151; border-radius: 8px; color: #ffffff; outline: none; transition: border-color 0.3s;">
+                            <span id="settings-pin-error" class="gateway-error hidden" style="margin-top: 8px;">❌ PIN 번호가 올바르지 않습니다.</span>
+                        </div>
+                        <button id="btn-settings-auth-submit" class="btn btn-gateway-purple" style="margin-top: 20px; width: 80%; max-width: 280px; height: 42px; font-size: 14px; border-radius: 8px;">잠금 해제</button>
+                    </div>
+                </div>
+
+                <!-- 설정 항목 구역 (초기 숨김) -->
+                <div class="modal-body hidden" id="settings-content-area">
+                    <div class="settings-group">
+                        <label for="cfg-country-name">🏛️ 가상 국가명</label>
+                        <input type="text" id="cfg-country-name" class="form-control" value="세종국">
+                    </div>
+                    <div class="settings-group">
+                        <label for="cfg-voter-count">👥 참여 유권자 수</label>
+                        <select id="cfg-voter-count" class="form-control">
+                            <option value="50">50명</option>
+                            <option value="100" selected>100명 (추천)</option>
+                            <option value="150">150명</option>
+                        </select>
+                    </div>
+                    <div class="settings-group">
+                        <label for="cfg-voter-mode">🎲 유권자 이념 분포 모드</label>
+                        <select id="cfg-voter-mode" class="form-control">
+                            <option value="standard" selected>기본 분포 (안정적 수업용)</option>
+                            <option value="random">랜덤 분포 (다양한 이념 지형)</option>
+                        </select>
+                    </div>
+                    <div class="settings-row-2">
+                        <div class="settings-group">
+                            <label for="cfg-weight-ideology">📐 초기 이념 반영비 (%)</label>
+                            <input type="number" id="cfg-weight-ideology" class="form-control" value="40" min="0" max="100">
+                        </div>
+                        <div class="settings-group">
+                            <label for="cfg-weight-budget">💰 정책 예산 반영비 (%)</label>
+                            <input type="number" id="cfg-weight-budget" class="form-control" value="60" min="0" max="100">
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="cfg-use-undecided" checked>
+                            <span>무당층(지지 포기) 시스템 사용</span>
+                        </label>
+                    </div>
+                    <div class="settings-group" id="cfg-undecided-distance-group">
+                        <label for="cfg-undecided-distance">⚠️ 무당층 기준 거리 (최대 141)</label>
+                        <input type="range" id="cfg-undecided-distance" min="30" max="140" value="80" class="slider">
+                        <span class="range-val" id="val-cfg-undecided-distance">80</span>
+                    </div>
+                    <div class="settings-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="cfg-identity-bonus" checked>
+                            <span>선명성(정당 정체성) 보너스 적용</span>
+                        </label>
+                        <p class="settings-help">체크 시, 정당이 선명한(극단에 가까운) 이념을 보일 때 해당 방향의 핵심 지지 유권자들이 거리 대비 강하게 지지합니다.</p>
+                    </div>
+                    <div class="settings-group">
+                        <label for="cfg-electoral-system">🗳️ 적용 선거 제도</label>
+                        <select id="cfg-electoral-system" class="form-control">
+                            <option value="proportional" selected>비례대표제 (득표율 비례 배분)</option>
+                            <option value="majoritarian">소선거구 다수대표제 (5개 선거구 1위 독식)</option>
+                        </select>
+                        <p class="settings-help" style="margin-top: 4px; font-size: 11px; color: var(--text-muted);">소선거구제를 적용하면 유권자가 5개 지역구로 분할되며, 각 지역구별 1위 정당이 해당 지역의 의석을 독식하고 나머지 낙선표는 모두 '사표(死票)'가 됩니다. (양당제 수렴 현상 학습)</p>
+                    </div>
+                    <div class="settings-group">
+                        <label for="cfg-anim-speed">⚡ 애니메이션 연출 속도</label>
+                        <select id="cfg-anim-speed" class="form-control">
+                            <option value="slow">느림 (설명 중심)</option>
+                            <option value="normal" selected>보통</option>
+                            <option value="fast">빠름 (빠른 전개)</option>
+                        </select>
+                    </div>
+                    <div class="settings-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="cfg-sound-effects" checked>
+                            <span>브라우저 효과음 음소거 해제</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="modal-footer hidden" id="settings-footer-area" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <button id="btn-reset-session" class="btn btn-danger" style="background-color: var(--color-danger); border: none; font-weight: 700;">🧹 새 수업 시작 (전체 리셋)</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btn-save-settings" class="btn btn-primary">적용 및 리셋</button>
+                        <button id="btn-cancel-settings" class="btn btn-secondary">취소</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cinema Broadcast Overlay (for Surveys and Final counts) -->
+        <div class="broadcast-overlay hidden" id="broadcast-overlay">
+            <div class="broadcast-container">
+                <div class="broadcast-ribbon">LIVE 개표 방송</div>
+                <h2 class="broadcast-title" id="broadcast-main-title">1차 여론조사 결과 발표</h2>
+                <div class="countdown-circle" id="broadcast-countdown">5</div>
+                
+                <!-- Live chart showing dynamic bar progress -->
+                <div class="broadcast-chart-wrapper" id="broadcast-chart-wrapper">
+                    <!-- dynamic content -->
+                </div>
+                
+                <div class="broadcast-status-msg" id="broadcast-status-msg">
+                    전국 유권자 투표 성향 조사 데이터를 분석 중입니다...
+                </div>
+                
+                <button id="btn-skip-broadcast" class="btn btn-dark btn-small">⏩ 연출 건너뛰기</button>
+            </div>
+        </div>
+        
+        <!-- 이념 성향 가이드 모달 (교실용으로 크기 대폭 확대) -->
+        <div class="modal-overlay hidden" id="policy-info-modal">
+            <div class="modal-box" style="max-width: 980px; width: 90%; border: 2px solid var(--border-color); background-color: var(--bg-secondary); border-radius: var(--radius-lg); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); transition: all 0.3s ease;">
+                <div class="modal-header" style="padding: 24px 32px; border-bottom: 1.5px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <h3 id="policy-modal-title" style="font-size: 26px; font-weight: 900; color: var(--color-accent); display: flex; align-items: center; gap: 10px;">💡 이념 성향 상세 가이드</h3>
+                    <button id="btn-close-policy-modal" class="btn-close" style="background: none; border: none; font-size: 36px; color: var(--text-muted); cursor: pointer; line-height: 1;">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 32px; line-height: 1.7; max-height: 600px; overflow-y: auto;">
+                    <div id="policy-modal-content">
+                        <!-- 동적으로 채워질 내용 -->
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding: 20px 32px; border-top: 1.5px solid var(--border-color); display: flex; justify-content: flex-end;">
+                    <button id="btn-confirm-policy" class="btn btn-primary" style="min-width: 140px; height: 48px; font-size: 16.5px; font-weight: 800; border-radius: var(--radius-md);">확인</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Rules Modal -->
+        <div class="modal-overlay hidden" id="rules-modal">
+            <div class="modal-box rules-modal-box">
+                <div class="modal-header">
+                    <h3>🎮 [폴리 컴패스] 활동 규칙</h3>
+                    <button id="btn-close-rules" class="btn-close">&times;</button>
+                </div>
+                <div class="modal-body rules-modal-body">
+                    <div class="rules-step-grid">
+                        <div class="rules-step-card">
+                            <div class="step-badge">1단계</div>
+                            <h4>정당 창당 및 이념 등록</h4>
+                            <p>모둠별로 정당의 가치를 대변하는 <strong>정당명, 슬로건, 핵심 공약</strong>을 정하고, 초기 이념의 중심점(X, Y 좌표)을 등록합니다.</p>
+                        </div>
+                        <div class="rules-step-card">
+                            <div class="step-badge">2단계</div>
+                            <h4>유권자 지형 공개</h4>
+                            <p>세종국의 유권자 100명이 2차원 스펙트럼 상의 어느 위치에 분포하는지 관찰하고 우리 정당의 타겟 유권자를 분석합니다.</p>
+                        </div>
+                        <div class="rules-step-card">
+                            <div class="step-badge">3단계</div>
+                            <h4>정책 예산 배분</h4>
+                            <p>선거 공략을 위해 5대 분야에 <strong>총 100억 원의 정책 예산</strong>을 배분합니다. 예산 분배에 따라 정당의 최종 좌표가 이동합니다.</p>
+                        </div>
+                        <div class="rules-step-card">
+                            <div class="step-badge">4단계</div>
+                            <h4>1차 여론조사</h4>
+                            <p>자신과 가장 이념적 거리가 가까운 정당을 지지하는 유권자들의 지지율을 1차 집계하여 실시간 여론 동향을 분석합니다.</p>
+                        </div>
+                        <div class="rules-step-card">
+                            <div class="step-badge">5단계</div>
+                            <h4>정책 수정 및 외연 확장</h4>
+                            <p>1차 조사를 토대로 예산안을 수정합니다. <strong>중도층 표를 가져올지, 기존 핵심 지지층의 결집을 유도할지</strong> 선택합니다.</p>
+                        </div>
+                        <div class="rules-step-card">
+                            <div class="step-badge">6단계</div>
+                            <h4>단일화 및 합당 협상</h4>
+                            <p>세력을 키우기 위해 다른 당과 합당을 꾀할 수 있습니다. 단, 이념 융합으로 인해 기존 지지자가 이탈할 수 있으니 주의합니다.</p>
+                        </div>
+                        <div class="rules-step-card" style="grid-column: span 2;">
+                            <div class="step-badge">7~8단계</div>
+                            <h4>최종 개표 & 수업 분석 정리</h4>
+                            <p>대망의 최종 투표 결과를 개표하고, 100석의 비례대표 의석을 나누어 갖습니다. 이후 세대별 통계를 분석하고 정당정치의 특징을 토론합니다.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 15px; border-top: 1px solid #334155;">
+                    <button id="btn-start-rules" class="btn btn-primary">시작하기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Wrap-up Modal -->
+        <div class="modal-overlay hidden" id="wrapup-modal" style="background-color: rgba(15, 23, 42, 0.85); display: none; align-items: center; justify-content: center;">
+            <div class="wrapup-container-box">
+                <div class="wrapup-header">
+                    <h2>폴리 컴패스(Poli Compass)와 정당의 선거 전략 (수업 정리)</h2>
+                    <button id="btn-close-wrapup" class="wrapup-close-btn">닫기</button>
+                </div>
+                
+                <div class="wrapup-grid-top">
+                    <!-- Card 1: 생각해보기 -->
+                    <div class="wrapup-card card-blue">
+                        <div class="wrapup-card-title">
+                            <span class="wrapup-icon">💡</span>
+                            <h4>타협과 신념 사이, 내일의 질문</h4>
+                        </div>
+                        <ul class="wrapup-list">
+                            <li>선거 승리를 위해 원래 지키려던 정체성(초기 이념)을 희석하면서 중도층으로 예산을 가깝게 조정하는 것은 정당 민주주의에 바람직할까요?</li>
+                            <li>단일화나 합당이 지지율의 단순 합산으로 이어지지 않고, 오히려 기권층(무당층)이 늘어나거나 타 정당 지지로 이탈한 이유는 무엇일까요?</li>
+                            <li>만약 모든 정당이 다수대표제 하에서 이기기 위해 중도 공약만 낸다면, 소수와 소외된 유권자들의 목소리는 어디에서 대변되어야 할까요?</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Card 2: 활동의 의의 -->
+                    <div class="wrapup-card card-orange">
+                        <div class="wrapup-card-title">
+                            <span class="wrapup-icon">⚡</span>
+                            <h4>숫자 너머에서 발견한 진짜 정치</h4>
+                        </div>
+                        <ul class="wrapup-list">
+                            <li>정당의 정책 수립과 예산 배분이 유권자 표심에 미치는 수학적·역학적 관계를 지도 시각화를 통해 직관적으로 규명했습니다.</li>
+                            <li>정치 조직이 선거 과정에서 직면하는 '신념(이념 선명성)'과 '선거 승리(외연 확장)' 간의 모순적 딜레마를 의사결정자로 참여해 직접 체험했습니다.</li>
+                            <li>정치공학적 후보 단일화가 유권자의 지지 성향과 충돌할 때 대의민주주의에서 어떤 왜곡과 기권 현상을 낳는지 현실을 비판적으로 이해했습니다.</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Card 3: 수업의 핵심 메시지 -->
+                    <div class="wrapup-card card-green">
+                        <div class="wrapup-card-title">
+                            <span class="wrapup-icon">⚙️</span>
+                            <h4>투표장 밖에서 설계되는 공정함</h4>
+                        </div>
+                        <ul class="wrapup-list">
+                            <li>민주주의 선거는 스포츠와 유사합니다. 선수가 아무리 열심히 뛰어도 '게임의 룰(선거제도, 유권자 분포)'이 불공정하거나 획일적이면 결과는 공정할 수 없습니다.</li>
+                            <li>투표 행위 자체뿐만 아니라, 표를 의석으로 환산하는 '선거 제도(소선거구제, 비례대표제 등)'의 보이지 않는 강제력을 설계하고 감시하는 것이 중요합니다.</li>
+                            <li>정치적 룰이 정당 간 다양성을 보장하고 소수의 국민들도 목소리를 낼 수 있게 만드는 다원주의의 틀이어야 참된 민주주의가 완성됩니다.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="wrapup-grid-bottom">
+                    <!-- Card 4: 관련 교과 개념 정리 -->
+                    <div class="wrapup-card card-brown">
+                        <div class="wrapup-card-title">
+                            <span class="wrapup-icon">📚</span>
+                            <h4>교과서 밖으로 걸어 나온 약속들</h4>
+                        </div>
+                        <ul class="wrapup-list">
+                            <li><strong>이념 스펙트럼</strong>: 정치·경제적 신념(진보-보수, economy 복지-시장 자유, 사회 질서-개인 다양성)의 성향을 1차원 선분이나 2차원 평면 지형에 나타낸 구도.</li>
+                            <li><strong>중위투표자 정리 (Downs)</strong>: 단순 다수제 하에서 거대 정당들이 표를 극대화하기 위해 이념 성향 분포의 정중앙(중도)에 가깝게 공약을 맞춰가는 수렴 현상.</li>
+                            <li><strong>대의 민주주의 & 정당</strong>: 유권자의 의견을 모아 정책에 반영(이익 표출 및 결합)하고 책임 정치를 실행하는 주체로서 현대 의회정치의 필수 매개체.</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Card 5: 수업 관련 시민적 태도 -->
+                    <div class="wrapup-card card-blue-dark">
+                        <div class="wrapup-card-title">
+                            <span class="wrapup-icon">🤝</span>
+                            <h4>선거일이 지난 후 시작되는 우리의 책임</h4>
+                        </div>
+                        <ul class="wrapup-list">
+                            <li>완벽하게 공정하고 모든 유권자가 동의하는 선거 제도는 존재하기 어렵습니다. 그렇기 때문에 우리는 더 나은 룰과 정책을 위해 끊임없이 관심을 가져야 합니다.</li>
+                            <li>민주주의를 수호하는 일은 투표장으로 향하는 일회성 선택에 그치지 않고, 대리 정치가 우리의 온전한 의사를 대변하도록 지속적으로 모니터링하는 감시자 역할입니다.</li>
+                            <li>정치적 무관심(무당층 전환)이나 냉소를 거두고, 사회 공동체의 문제 해결을 위해 타인의 다양한 생각을 경청하고 양보·조율하는 열린 시민 의식을 가집니다.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Bottom Quote Panel -->
+                <div class="wrapup-quote-box">
+                    "선거는 민주주의의 시작일 뿐, 완성은 아니다."
+                </div>
+            </div>
+        </div>
+        
+    </div>
+        
+    </div>
+
+    <!-- JavaScript Bundle -->
+    <script src="app.js"></script>
+</body>
+</html>
