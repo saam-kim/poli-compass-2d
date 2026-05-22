@@ -94,11 +94,12 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     width: 100%;
 }
 
 .timeline-step {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -109,6 +110,30 @@ body {
     opacity: 0.5;
     transition: all 0.3s ease;
     cursor: default;
+}
+
+/* 단계 사이의 화살표 연결선 추가 */
+.timeline-step:not(:last-child) {
+    margin-right: 20px;
+}
+
+.timeline-step:not(:last-child)::after {
+    content: "➔";
+    position: absolute;
+    right: -21px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+}
+
+.timeline-step.completed:not(:last-child)::after {
+    color: rgba(16, 185, 129, 0.6);
+}
+
+.timeline-step.active:not(:last-child)::after {
+    color: rgba(59, 130, 246, 0.6);
 }
 
 .timeline-step.active {
@@ -224,11 +249,13 @@ body {
 .guide-indicator {
     background-color: var(--color-primary);
     color: white;
-    font-size: 11px;
+    font-size: 12.5px;
     font-weight: 800;
-    padding: 2px 6px;
+    padding: 4px 10px;
     border-radius: var(--radius-sm);
     text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .guide-text {
@@ -1663,6 +1690,22 @@ input[type="range"].slider::-webkit-slider-thumb {
     stroke-dasharray: 5,5;
     stroke-width: 2.5;
     animation: dash-flow 1.5s linear infinite;
+    transition: stroke 0.3s ease;
+}
+
+.party-path-line.history-path {
+    opacity: 0.35 !important;
+    stroke-dasharray: 3,3;
+    stroke-width: 1.8;
+    animation: none;
+}
+
+/* 합당/단일화 시 수렴 안내선 스타일 */
+.party-merger-line {
+    fill: none;
+    stroke-dasharray: 2,4;
+    stroke-width: 1.5;
+    opacity: 0.45;
 }
 
 @keyframes dash-flow {

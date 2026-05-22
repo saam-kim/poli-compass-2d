@@ -858,9 +858,24 @@ function restoreSession() {
     }
 }
 
+const STAGE_TITLES = {
+    1: "1단계: 정당 등록",
+    2: "2단계: 유권자 공개",
+    3: "3단계: 예산 배분",
+    4: "4단계: 1차 여론조사",
+    5: "5단계: 정책 수정",
+    6: "6단계: 단일화/합당",
+    7: "7단계: 최종 개표",
+    8: "8단계: 결과 분석"
+};
+
 // 안내 배너 텍스트 헬퍼
 function setGuideText(msg) {
     document.getElementById("guide-text").innerHTML = msg;
+    const indicator = document.querySelector(".guide-indicator");
+    if (indicator && state.stage) {
+        indicator.textContent = STAGE_TITLES[state.stage] || "안내";
+    }
 }
 
 // ==========================================
@@ -1013,15 +1028,46 @@ function renderPartyFlagsOnMap(mode = 0) {
         
         container.appendChild(flag);
         
-        // 5단계(정책수정) 혹은 6단계(단일화) 진입 시 정책 이동 점선 경로 그리기
-        if ((state.stage === 5 || state.stage === 6) && party.x1 !== undefined && party.x2 !== undefined) {
-            drawPathLine(party.x1, party.y1, party.x2, party.y2, party.color);
+        // 1차 이념 이동 궤적 그리기: 초기이념(initX, initY) -> 1차 예산이념(x1, y1)
+        if (state.stage >= 3 && party.x1 !== undefined) {
+            const isHistory = (state.stage >= 5); // 5단계 이상에서는 연한 색 과거이력으로 표시
+            drawPathLine(party.initX, party.initY, party.x1, party.y1, party.color, isHistory);
+        }
+        
+        // 2차 이념 이동 궤적 그리기: 1차 예산이념(x1, y1) -> 2차 수정이념(x2, y2)
+        if (state.stage >= 5 && party.x1 !== undefined && party.x2 !== undefined) {
+            drawPathLine(party.x1, party.y1, party.x2, party.y2, party.color, false);
         }
     });
+    
+    // 합당으로 소멸한 기존 정당들로부터 새로운 신당의 이념적 수렴선 표시 (6단계 이상일 때)
+    if (state.stage >= 6) {
+        state.parties.forEach(party => {
+            if (!party.active && party.mergedInto) {
+                const targetParty = state.parties.find(p => p.id === party.mergedInto);
+                if (targetParty && targetParty.active) {
+                    const startX = party.x2 !== undefined ? party.x2 : (party.x1 !== undefined ? party.x1 : party.initX);
+                    const startY = party.y2 !== undefined ? party.y2 : (party.y1 !== undefined ? party.y1 : party.initY);
+                    
+                    let endX = targetParty.initX;
+                    let endY = targetParty.initY;
+                    if (mode === 1 && targetParty.x1 !== undefined) {
+                        endX = targetParty.x1;
+                        endY = targetParty.y1;
+                    } else if (mode === 2 && targetParty.x2 !== undefined) {
+                        endX = targetParty.x2;
+                        endY = targetParty.y2;
+                    }
+                    
+                    drawMergerLine(startX, startY, endX, endY, party.color);
+                }
+            }
+        });
+    }
 }
 
 // 두 좌표 사이의 점선 화살표 드로잉 (SVG)
-function drawPathLine(x1, y1, x2, y2, color) {
+function drawPathLine(x1, y1, x2, y2, color, isHistory = false) {
     const svg = document.getElementById("paths-layer");
     if (!svg) return;
     
@@ -1043,14 +1089,66 @@ function drawPathLine(x1, y1, x2, y2, color) {
         svg.appendChild(defs);
     }
     
+    // 과거 궤적을 위한 연한 마커 추가
+    if (!document.getElementById("arrow-marker-history")) {
+        const defs = svg.querySelector("defs") || document.createElementNS("http://www.w3.org/2000/svg", "defs");
+        const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+        marker.setAttribute("id", "arrow-marker-history");
+        marker.setAttribute("markerWidth", "8");
+        marker.setAttribute("markerHeight", "8");
+        marker.setAttribute("refX", "5");
+        marker.setAttribute("refY", "2.5");
+        marker.setAttribute("orient", "auto");
+        marker.setAttribute("markerUnits", "strokeWidth");
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M0,0 L0,5 L5,2.5 Z");
+        path.setAttribute("fill", "#ffffff");
+        path.setAttribute("opacity", "0.35");
+        
+        marker.appendChild(path);
+        
+        if (!svg.querySelector("defs")) {
+            defs.appendChild(marker);
+            svg.appendChild(defs);
+        } else {
+            svg.querySelector("defs").appendChild(marker);
+        }
+    }
+    
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
     line.setAttribute("x1", `${p1.leftPct}%`);
     line.setAttribute("y1", `${p1.topPct}%`);
     line.setAttribute("x2", `${p2.leftPct}%`);
     line.setAttribute("y2", `${p2.topPct}%`);
     line.setAttribute("stroke", color);
-    line.setAttribute("class", "party-path-line");
-    line.setAttribute("marker-end", "url(#arrow-marker)");
+    
+    if (isHistory) {
+        line.setAttribute("class", "party-path-line history-path");
+        line.setAttribute("marker-end", "url(#arrow-marker-history)");
+    } else {
+        line.setAttribute("class", "party-path-line");
+        line.setAttribute("marker-end", "url(#arrow-marker)");
+    }
+    
+    svg.appendChild(line);
+}
+
+// 합당 시 두 좌표 사이의 수렴 연결 안내선 드로잉 (SVG)
+function drawMergerLine(x1, y1, x2, y2, color) {
+    const svg = document.getElementById("paths-layer");
+    if (!svg) return;
+    
+    const p1 = getMapPercent(x1, y1);
+    const p2 = getMapPercent(x2, y2);
+    
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", `${p1.leftPct}%`);
+    line.setAttribute("y1", `${p1.topPct}%`);
+    line.setAttribute("x2", `${p2.leftPct}%`);
+    line.setAttribute("y2", `${p2.topPct}%`);
+    line.setAttribute("stroke", color);
+    line.setAttribute("class", "party-merger-line");
     
     svg.appendChild(line);
 }
