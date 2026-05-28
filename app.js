@@ -112,6 +112,7 @@ let state = {
         useUndecided: true,
         undecidedDistance: 80,
         identityBonus: true,
+        useAlliance: false,
         electoralSystem: "proportional", // "proportional" (비례대표) 또는 "majoritarian" (소선거구)
         animSpeed: "normal",
         soundEffects: true
@@ -656,6 +657,16 @@ function allocateSeats() {
  * @param {boolean} pushHistory 히스토리 스냅샷에 저장할지 여부
  */
 function transitionToStage(nextStage, pushHistory = true) {
+    // 6단계(단일화) 활성화 여부에 따라 타임라인 노출 토글
+    const stepNav6 = document.getElementById("step-nav-6");
+    if (stepNav6) {
+        if (state.config.useAlliance) {
+            stepNav6.style.display = "flex";
+        } else {
+            stepNav6.style.display = "none";
+        }
+    }
+
     if (pushHistory) {
         // 실행 취소(Undo)를 위해 딥카피 백업
         state.history.push({
@@ -738,6 +749,16 @@ function transitionToStage(nextStage, pushHistory = true) {
             initRevisionSelection(state.parties.filter(p => p.active)[0].id);
             renderVotersOnMap(1); // 1차 지지 색 유지
             renderPartyFlagsOnMap(1);
+            
+            // 단일화 단계 사용 여부에 따라 버튼 텍스트 동적 수정
+            const btnToStage6 = document.getElementById("btn-to-stage6");
+            if (btnToStage6) {
+                if (state.config.useAlliance) {
+                    btnToStage6.innerHTML = "🤝 단일화/합당 협상 단계로 이동";
+                } else {
+                    btnToStage6.innerHTML = "🗳️ 최종 개표 단계로 이동";
+                }
+            }
             break;
             
         case 6:
@@ -2588,6 +2609,7 @@ function openSettingsModal() {
     document.getElementById("cfg-undecided-distance").value = state.config.undecidedDistance;
     document.getElementById("val-cfg-undecided-distance").innerText = state.config.undecidedDistance;
     document.getElementById("cfg-identity-bonus").checked = state.config.identityBonus;
+    document.getElementById("cfg-use-alliance").checked = !!state.config.useAlliance;
     document.getElementById("cfg-electoral-system").value = state.config.electoralSystem || "proportional";
     document.getElementById("cfg-anim-speed").value = state.config.animSpeed;
     document.getElementById("cfg-sound-effects").checked = state.config.soundEffects;
@@ -2637,6 +2659,7 @@ function applySettings() {
     state.config.useUndecided = document.getElementById("cfg-use-undecided").checked;
     state.config.undecidedDistance = parseInt(document.getElementById("cfg-undecided-distance").value);
     state.config.identityBonus = document.getElementById("cfg-identity-bonus").checked;
+    state.config.useAlliance = document.getElementById("cfg-use-alliance").checked;
     state.config.electoralSystem = document.getElementById("cfg-electoral-system").value;
     state.config.animSpeed = document.getElementById("cfg-anim-speed").value;
     state.config.soundEffects = document.getElementById("cfg-sound-effects").checked;
@@ -2659,6 +2682,9 @@ function loadStoredConfig() {
     if (raw) {
         try {
             state.config = JSON.parse(raw);
+            if (state.config.useAlliance === undefined) {
+                state.config.useAlliance = false;
+            }
             document.getElementById("display-country-name").innerText = state.config.countryName;
         } catch (e) {
             console.error("Config restore failed", e);
@@ -2868,7 +2894,11 @@ document.addEventListener("DOMContentLoaded", () => {
     
     document.getElementById("btn-to-stage6").addEventListener("click", () => {
         AudioSynth.playClick();
-        transitionToStage(6);
+        if (state.config.useAlliance) {
+            transitionToStage(6);
+        } else {
+            transitionToStage(7);
+        }
     });
     
     document.getElementById("btn-run-alliance").addEventListener("click", executePartyMerger);
