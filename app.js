@@ -100,6 +100,7 @@ let state = {
     voters: [],         // 유권자 목록
     history: [],        // 단계 되돌리기 스냅샷
     activePartyIdForBudget: null, // 예산 입력 중인 활성 정당 ID
+    pickerActivePartyIdx: null,  // 1단계 이념 맵 클릭 터치 픽커 활성 정당 인덱스
     
     // 설정 값
     config: {
@@ -320,6 +321,29 @@ function calculateFinalPartyCoordinates(party, isRevision = false) {
     };
 }
 
+// 관심 이익집단 매칭용 맵 (교과서 '이익 표출' 주체 연계)
+const INTEREST_GROUPS = {
+    "주거": "세입자보호연대 🏠",
+    "부동산": "주택재건축연합 🏢",
+    "일자리": "전국청년구직자포럼 💼",
+    "등록금": "대학생평등교육연대 🎓",
+    "육아": "보육교사·학부모협회 👶",
+    "세금": "납세자권리협회 💵",
+    "규제 완화": "자유기업가동맹 🚀",
+    "경기 활성화": "소상공인연합회 🏪",
+    "자녀 교육": "공교육정상화학부모모임 🏫",
+    "사회 안정": "치안질서협의회 👮",
+    "연금": "노후보장은퇴자협회 👴",
+    "복지": "복지민주화시민연대 🏥",
+    "의료": "국민건강수호연대 🩺",
+    "환경": "기후위기비상행동 🌿",
+    "기후": "생태환경연합 🌍",
+    "다양성": "문화다양성포럼 🌈",
+    "지속가능성": "녹색대안연구소 🌲",
+    "자유": "시민권옹호연대 🕊️",
+    "안정": "전국재난안전협회 🛡️"
+};
+
 /**
  * 유권자 이념 지형 생성기
  * @param {boolean} forceRandom true인 경우 설정 모드에 관계없이 강제로 무작위 난수 기반의 재배치를 수행합니다.
@@ -339,7 +363,7 @@ function generateVoters(forceRandom = false) {
             let x, y;
             
             if (isRandom) {
-                // 무작위 모드: 박스-뮬러 변환의 두 가지 성분(cos, sin)을 독립적으로 사용하여 x와 y의 상관관계를 끊고 2D 원형으로 자연스럽게 분포하게 만듭니다.
+                // 무작위 모드
                 const u1 = Math.random() || 0.0001;
                 const u2 = Math.random() || 0.0001;
                 const r = Math.sqrt(-2.0 * Math.log(u1));
@@ -349,22 +373,17 @@ function generateVoters(forceRandom = false) {
                 x = group.center.x + (randStdNormalX * group.spread * 0.95);
                 y = group.center.y + (randStdNormalY * group.spread * 0.95);
             } else {
-                // 기본 모드: 중심점 주변에 일정한 나선형태 또는 규칙적인 편차로 배치하여
-                // 리셋 시 매번 동일한 배치로 교과서적 시뮬레이션이 가능하게 함
+                // 기본 모드
                 const angle = (i * 0.95) * (2 * Math.PI / groupCount) + (group.id * 0.5);
                 const radius = (i / groupCount) * group.spread * 1.1;
                 x = group.center.x + Math.cos(angle) * radius;
                 y = group.center.y + Math.sin(angle) * radius;
             }
             
-            // [-100, 100] 바운딩 박스 제한
             x = Math.max(-100, Math.min(100, x));
             y = Math.max(-100, Math.min(100, y));
             
-            // 관심 이슈 선정 (그룹 이슈에서 무작위 선택)
             const primaryIssue = group.issues[i % group.issues.length];
-            
-            // 연령대에 대한 고정관념/편견을 방지하기 위해, 정치 성향과 무관하게 연령을 골고루 랜덤 분배합니다.
             const randomAge = ["20대", "30대", "40대", "50대", "60대"][Math.floor(Math.random() * 5)];
             
             voters.push({
@@ -373,6 +392,7 @@ function generateVoters(forceRandom = false) {
                 age: randomAge,
                 job: getSampleJobForGroup(group.id, i),
                 issue: primaryIssue,
+                interestGroup: INTEREST_GROUPS[primaryIssue] || "일반 시민 연합",
                 x: parseFloat(x.toFixed(1)),
                 y: parseFloat(y.toFixed(1)),
                 support1: null,
@@ -385,12 +405,14 @@ function generateVoters(forceRandom = false) {
     while (voters.length < count) {
         const randGroup = VOTER_GROUPS[Math.floor(Math.random() * VOTER_GROUPS.length)];
         const randomAge = ["20대", "30대", "40대", "50대", "60대"][Math.floor(Math.random() * 5)];
+        const primaryIssue = randGroup.issues[0];
         voters.push({
             id: voterId++,
             groupName: randGroup.name,
             age: randomAge,
             job: "기타 시민",
-            issue: randGroup.issues[0],
+            issue: primaryIssue,
+            interestGroup: INTEREST_GROUPS[primaryIssue] || "일반 시민 연합",
             x: randGroup.center.x,
             y: randGroup.center.y,
             support1: null,
@@ -941,8 +963,9 @@ function renderVotersOnMap(surveyRound = 0) {
             showTooltip(e, `
                 <div class="tooltip-title">${voter.groupName}</div>
                 <div class="tooltip-row"><span class="tooltip-label">직업:</span> ${voter.job}</div>
-                <div class="tooltip-row"><span class="tooltip-label">관심:</span> 💎 ${voter.issue}</div>
-                <div class="tooltip-row"><span class="tooltip-label">성향:</span> 경제 ${voter.x > 0 ? '우' : '좌'}(${Math.abs(voter.x)}), 사회 ${voter.y > 0 ? '자유' : '질서'}(${Math.abs(voter.y)})</div>
+                <div class="tooltip-row"><span class="tooltip-label">이익 표출 집단:</span> ${voter.interestGroup || "일반 시민"}</div>
+                <div class="tooltip-row"><span class="tooltip-label">관심 정책:</span> 💎 ${voter.issue}</div>
+                <div class="tooltip-row"><span class="tooltip-label">이념 성향:</span> 경제 ${voter.x > 0 ? '우' : '좌'}(${Math.abs(voter.x)}), 사회 ${voter.y > 0 ? '자유' : '질서'}(${Math.abs(voter.y)})</div>
             `);
         });
         
@@ -1311,6 +1334,15 @@ function renderSetupParties() {
         const card = document.createElement("div");
         card.className = "party-setup-card";
         
+        const isPickerActive = (state.pickerActivePartyIdx === index);
+        const pickerText = isPickerActive ? "📍 지도를 터치하세요!" : "📍 지도에서 좌표 콕 짚기";
+        const pickerStyle = isPickerActive ? "background: var(--color-primary); color: white; border-color: var(--color-primary);" : "border-color: var(--color-secondary); color: var(--color-primary); background: rgba(59,130,246,0.05);";
+        
+        if (isPickerActive) {
+            card.style.borderColor = "var(--color-primary)";
+            card.style.boxShadow = "0 0 15px rgba(37,99,235,0.25)";
+        }
+        
         card.innerHTML = `
             <button class="btn-remove-setup-party" onclick="removeParty(${index})">&times;</button>
             <div class="setup-form-row">
@@ -1329,13 +1361,15 @@ function renderSetupParties() {
                     <span>💵 경제 (세금/복지)</span>
                     <span id="lbl-coord-x-${index}" style="font-weight: 800; color: var(--color-gold);">${party.initX > 0 ? '+' : ''}${party.initX} <span style="font-size: 11.5px; font-weight: normal; color: var(--text-muted); margin-left: 4px;">(${getXMeaning(party.initX)})</span></span>
                 </div>
-                <input type="range" class="slider" min="-100" max="100" value="${party.initX}" oninput="updatePartyCoord(${index}, 'initX', this.value)">
+                <input type="range" class="slider" min="-100" max="100" value="${party.initX}" oninput="updatePartyCoord(${index}, 'initX', this.value)" id="slider-x-${index}">
                 
                 <div class="coord-label" style="margin-top: 8px;">
                     <span>🕊️ 사회 (자유/질서)</span>
                     <span id="lbl-coord-y-${index}" style="font-weight: 800; color: var(--color-gold);">${party.initY > 0 ? '+' : ''}${party.initY} <span style="font-size: 11.5px; font-weight: normal; color: var(--text-muted); margin-left: 4px;">(${getYMeaning(party.initY)})</span></span>
                 </div>
-                <input type="range" class="slider" min="-100" max="100" value="${party.initY}" oninput="updatePartyCoord(${index}, 'initY', this.value)">
+                <input type="range" class="slider" min="-100" max="100" value="${party.initY}" oninput="updatePartyCoord(${index}, 'initY', this.value)" id="slider-y-${index}">
+                
+                <button class="btn btn-secondary btn-small btn-map-picker" id="btn-picker-${index}" onclick="toggleMapPicker(${index})" style="margin-top: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; height: 32px; border-radius: 6px; font-weight: 700; transition: all 0.2s ease; ${pickerStyle}">${pickerText}</button>
             </div>
         `;
         list.appendChild(card);
@@ -1348,6 +1382,9 @@ function renderSetupParties() {
     } else {
         btnAdd.disabled = false;
     }
+    
+    // 1단계 창당 과정에서도 지도 깃발 미리보기를 실시간 가동
+    renderPartyFlagsOnMap(0);
 }
 
 /**
@@ -1380,6 +1417,105 @@ function addNewParty() {
     renderLeaderboard();
     saveSession();
 }
+
+/**
+ * 1단계 이념 맵 클릭 터치 픽커 토글
+ */
+window.toggleMapPicker = function(index) {
+    AudioSynth.playClick();
+    if (state.pickerActivePartyIdx === index) {
+        state.pickerActivePartyIdx = null;
+        document.getElementById("spectrum-map").style.cursor = "";
+        document.getElementById("spectrum-map").classList.remove("picker-active");
+        setGuideText("정당 등록 완료 후 예산 배분 단계로 진행하세요.");
+    } else {
+        state.pickerActivePartyIdx = index;
+        const map = document.getElementById("spectrum-map");
+        map.style.cursor = "crosshair";
+        map.classList.add("picker-active");
+        
+        const party = state.parties[index];
+        setGuideText(`📢 [이념 좌표 선택 모드] <strong>${party.name}</strong>의 초기 이념 위치를 지도 위에서 클릭(터치)하여 설정하세요.`);
+    }
+    renderSetupParties();
+};
+
+/**
+ * 정책 예산 노선 프리셋 적용 (3단계, 5단계 공용)
+ */
+window.applyBudgetPreset = function(presetName) {
+    const isRevision = state.stage === 5;
+    const activePartyId = isRevision ? state.parties.find(p => p.active)?.id : state.activePartyIdForBudget;
+    if (!activePartyId) return;
+    
+    const party = state.parties.find(p => p.id === activePartyId);
+    if (!party) return;
+    
+    const presets = {
+        green: { youth: 10, old: 10, estate: 10, environment: 60, defense: 10 },        // 생태환경
+        welfare: { youth: 10, old: 60, estate: 10, environment: 10, defense: 10 },      // 노령복지
+        market: { youth: 10, old: 10, estate: 50, environment: 10, defense: 20 },       // 규제완화시장
+        youth: { youth: 60, old: 10, estate: 10, environment: 10, defense: 10 },        // 청년일자리
+        defense: { youth: 10, old: 10, estate: 10, environment: 10, defense: 60 }       // 국방질서
+    };
+    
+    const selected = presets[presetName];
+    if (selected) {
+        AudioSynth.playSuccess();
+        const budgetTarget = isRevision ? party.revisedBudget : party.budget;
+        for (const key in selected) {
+            budgetTarget[key] = selected[key];
+        }
+        
+        const formAreaId = isRevision ? "revise-input-form-area" : "budget-input-form-area";
+        renderBudgetInputForm(formAreaId, activePartyId, isRevision);
+        updateBudgetSumBar(activePartyId, isRevision);
+    }
+};
+
+/**
+ * 100억 채우기용 남은 예산 자동 할당
+ */
+window.autoFillRemainingBudget = function() {
+    const isRevision = state.stage === 5;
+    const activePartyId = isRevision ? state.parties.find(p => p.active)?.id : state.activePartyIdForBudget;
+    if (!activePartyId) return;
+    
+    const party = state.parties.find(p => p.id === activePartyId);
+    if (!party) return;
+    
+    const budgetTarget = isRevision ? party.revisedBudget : party.budget;
+    const sum = Object.values(budgetTarget).reduce((t, v) => t + v, 0);
+    const diff = 100 - sum;
+    
+    if (diff === 0) {
+        alert("이미 정확히 100억 원이 배분되었습니다!");
+        return;
+    }
+    
+    AudioSynth.playSuccess();
+    
+    let targetKey = "youth";
+    let maxVal = -1;
+    for (const key in budgetTarget) {
+        if (budgetTarget[key] > maxVal) {
+            maxVal = budgetTarget[key];
+            targetKey = key;
+        }
+    }
+    
+    budgetTarget[targetKey] = Math.max(0, budgetTarget[targetKey] + diff);
+    
+    const newSum = Object.values(budgetTarget).reduce((t, v) => t + v, 0);
+    const newDiff = 100 - newSum;
+    if (newDiff !== 0) {
+        budgetTarget.youth = Math.max(0, budgetTarget.youth + newDiff);
+    }
+    
+    const formAreaId = isRevision ? "revise-input-form-area" : "budget-input-form-area";
+    renderBudgetInputForm(formAreaId, activePartyId, isRevision);
+    updateBudgetSumBar(activePartyId, isRevision);
+};
 
 /**
  * 정당 삭제
@@ -1422,6 +1558,9 @@ window.updatePartyCoord = function(idx, axis, val) {
             const desc = axis === "initX" ? getXMeaning(valueNum) : getYMeaning(valueNum);
             lblEl.innerHTML = `${valueNum > 0 ? '+' : ''}${valueNum} <span style="font-size: 11.5px; font-weight: normal; color: var(--text-muted); margin-left: 4px;">(${desc})</span>`;
         }
+        
+        // 1단계 등록 도중에도 실시간으로 지도의 임시 깃발 위치를 업데이트
+        renderPartyFlagsOnMap(0);
         saveSession();
     }
 };
@@ -2104,6 +2243,91 @@ function initAnalysisScreen() {
     
     // 3. 선거 제도 및 사표 분석 통계 렌더링
     renderElectoralAnalysisReport();
+    
+    // 4. 선거 전후 결과 대조 분석 테이블 및 의회 구도 리포트 렌더링
+    renderElectionFlowComparison();
+}
+
+/**
+ * 1차 여론조사 vs 최종 개표 대조표 및 의회 구도 리포트 렌더링
+ */
+function renderElectionFlowComparison() {
+    const tbody = document.getElementById("comparison-table-body");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    
+    // 전체 정당(소멸된 당 포함) 리스트업
+    state.parties.forEach(party => {
+        const row = document.createElement("tr");
+        row.style.borderBottom = "1px solid var(--border-color)";
+        
+        // 1차 지지율 문자열
+        const pct1Str = party.pct1 !== undefined ? `${party.pct1.toFixed(1)}%` : "0.0%";
+        
+        // 최종 득표율 문자열 및 변동폭
+        let pct2Str = "-";
+        let diffStr = "-";
+        let seatsStr = "0석";
+        
+        if (party.active) {
+            const pct2 = party.pct2 || 0;
+            pct2Str = `${pct2.toFixed(1)}%`;
+            
+            const diff = pct2 - (party.pct1 || 0);
+            const sign = diff > 0 ? "+" : "";
+            diffStr = `${sign}${diff.toFixed(1)}%`;
+            
+            seatsStr = `${party.seats || 0}석`;
+        } else {
+            pct2Str = `<span style="color: var(--text-muted); font-size: 12px;">소멸 (합당)</span>`;
+            diffStr = `-${(party.pct1 || 0).toFixed(1)}%`;
+            seatsStr = `<span style="color: var(--text-muted); font-size: 12px;">합당 흡수</span>`;
+        }
+        
+        row.innerHTML = `
+            <td style="padding: 10px 8px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: ${party.color};"></span>
+                ${party.name}
+            </td>
+            <td style="padding: 10px 8px; font-style: italic; color: var(--text-muted); font-size: 12.5px;">
+                (${party.initX.toFixed(0)}, ${party.initY.toFixed(0)}) ${party.promise}
+            </td>
+            <td style="padding: 10px 8px; text-align: center; font-weight: 700;">${pct1Str}</td>
+            <td style="padding: 10px 8px; text-align: center; font-weight: 700;">${pct2Str}</td>
+            <td style="padding: 10px 8px; text-align: center; font-weight: 800; color: ${diffStr.startsWith('+') ? 'var(--color-success)' : (diffStr.startsWith('-') ? 'var(--color-danger)' : 'inherit')}">${diffStr}</td>
+            <td style="padding: 10px 8px; text-align: center; font-weight: 800; color: var(--color-primary); font-size: 14.5px;">${seatsStr}</td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+    
+    // 의회 구도 분석 리포트 렌더링
+    const reportEl = document.getElementById("parliament-layout-report");
+    if (!reportEl) return;
+    
+    const activeParties = state.parties.filter(p => p.active);
+    if (activeParties.length === 0) {
+        reportEl.innerHTML = "선거가 정상적으로 치러지지 않았습니다.";
+        return;
+    }
+    
+    // 득석수 기준 정렬
+    const sorted = [...activeParties].sort((a, b) => (b.seats || 0) - (a.seats || 0));
+    const leadingParty = sorted[0];
+    const leadingSeats = leadingParty.seats || 0;
+    
+    let analysisText = "";
+    if (leadingSeats >= 50) {
+        // 단독 과반 의석 확보
+        analysisText = `⚖️ <strong>[입법 주도 구도 분석]</strong> 제1당인 <strong>"${leadingParty.name}"</strong>이(가) 단독 과반 의석(<strong>${leadingSeats}석</strong>)을 확보하였습니다. 
+        이는 <strong>'여대야소(또는 단독 집권여당)'</strong> 정국으로, 복잡한 여론 수렴 단계를 거쳐 수립한 당의 입법 정책들을 신속하고 강력하게 밀어붙일 수 있는 정책 주도권을 갖게 됨을 뜻합니다. 다만, 소수당과의 정치적 협치가 결여될 경우 독선적 국정 운영이라는 비판을 받을 수 있는 책임 정치의 국면에 접어들었습니다.`;
+    } else {
+        // 과반 실패 (연합 필요)
+        analysisText = `⚖️ <strong>[협치 및 연합 정국 분석]</strong> 제1당인 <strong>"${leadingParty.name}"</strong>의 의석수가 과반에 미치지 못하는 <strong>${leadingSeats}석</strong>에 머물렀습니다. 
+        이는 다당제 하에서 나타나는 전형적인 <strong>'여소야대(또는 타협 국회)'</strong> 정국입니다. 법안을 하나 통과시키기 위해서라도 가치관이 인접한 다른 정당과의 대화, 타협, 그리고 <strong>'정책적 연대 및 연립 정부'</strong> 수립이 불가피한 정치과정이 가동될 것입니다. 다원적 민주주의 사회에서 갈등을 조정하는 정당의 매개적 역할이 극대화되는 시점입니다.`;
+    }
+    
+    reportEl.innerHTML = analysisText;
 }
 
 /**
@@ -2497,6 +2721,46 @@ function toggleFullscreen() {
 document.addEventListener("DOMContentLoaded", () => {
     // 1. 저장된 설정 복원
     loadStoredConfig();
+    
+    // 1.5. 이념 맵 클릭 터치 픽커 이벤트 리스너 추가
+    const spectrumMap = document.getElementById("spectrum-map");
+    if (spectrumMap) {
+        spectrumMap.addEventListener("click", function(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            
+            if (state.stage === 1 && state.pickerActivePartyIdx !== null) {
+                const rect = this.getBoundingClientRect();
+                
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                
+                const pctX = (clickX / rect.width) * 100;
+                const pctY = (clickY / rect.height) * 100;
+                
+                const coordX = Math.round((pctX - 50) * 2);
+                const coordY = Math.round((50 - pctY) * 2);
+                
+                const clampedX = Math.max(-100, Math.min(100, coordX));
+                const clampedY = Math.max(-100, Math.min(100, coordY));
+                
+                const idx = state.pickerActivePartyIdx;
+                if (state.parties[idx]) {
+                    state.parties[idx].initX = clampedX;
+                    state.parties[idx].initY = clampedY;
+                    
+                    AudioSynth.playSuccess();
+                }
+                
+                state.pickerActivePartyIdx = null;
+                this.style.cursor = "";
+                this.classList.remove("picker-active");
+                
+                setGuideText("정당 등록 완료 후 예산 배분 단계로 진행하세요.");
+                renderSetupParties();
+                saveSession();
+            }
+        });
+    }
     
     // 2. 정당 등록 단계로 앱 시동
     transitionToStage(1, false);

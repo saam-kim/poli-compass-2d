@@ -169,17 +169,17 @@
                 <!-- STAGE 1: Party Registration -->
                 <div class="control-panel-tab" id="panel-stage-1">
                     <div class="tab-header">
-                        <h3>🎨 학생 정당 등록하기</h3>
-                        <p class="tab-desc">학생 모둠별로 정당의 기본 이념 성향을 설정해 줍니다. (최소 2개, 최대 6개)</p>
+                        <h3>🎨 [정당의 역할 ①] 여론 수렴 및 가치 결집 (정당 창당)</h3>
+                        <p class="tab-desc">모둠별로 가치관을 대변하는 <strong>정당명, 슬로건, 대표 공약 및 기초 이념 성향(좌표)</strong>을 등록합니다. X, Y 슬라이더로 조절하거나 각 카드의 <strong>[📍 지도에서 선택]</strong> 버튼을 누른 뒤 지도 위를 직접 터치해 간편하게 등록할 수 있습니다.</p>
                     </div>
                     <div class="tab-body registration-body">
                         <div class="parties-grid-setup" id="parties-setup-list">
                             <!-- Party Inputs -->
                         </div>
                         <div class="registration-actions">
-                            <button id="btn-add-party" class="btn btn-secondary">➕ 정당 추가 (+)</button>
-                            <button id="btn-quick-start" class="btn btn-accent-blue">🚀 빠른 시작 (샘플 4개)</button>
-                            <button id="btn-submit-parties" class="btn btn-primary btn-large">💾 정당 설정 완료</button>
+                            <button id="btn-add-party" class="btn btn-secondary" style="font-weight: 800; border-radius: 8px;">➕ 정당 추가 (+)</button>
+                            <button id="btn-quick-start" class="btn btn-accent-blue" style="font-weight: 800; border-radius: 8px;">🚀 빠른 시작 (샘플 4개)</button>
+                            <button id="btn-submit-parties" class="btn btn-primary btn-large" style="font-weight: 800; border-radius: 8px;">💾 정당 설정 완료</button>
                         </div>
                     </div>
                 </div>
@@ -208,25 +208,37 @@
                 <!-- STAGE 3: Budget Input -->
                 <div class="control-panel-tab hidden" id="panel-stage-3">
                     <div class="tab-header">
-                        <h3>💰 정책 예산 배분 (총 100억 원)</h3>
-                        <p class="tab-desc">각 모둠이 토론해 온 정책별 예산 배분(총 100억)을 교사가 입력해 줍니다. <strong>100억 원을 정확히 채워야 완료됩니다!</strong></p>
+                        <h3>💰 [정당의 역할 ②] 이익 집약 및 정책(예산안) 제안 (예산 배분)</h3>
+                        <p class="tab-desc">시민들의 다양한 요구(이익 표출)를 정책 예산(총 100억)으로 수렴하는 이익 집약 과정입니다. <strong>100억 원을 정확히 채워야 완료됩니다!</strong></p>
                     </div>
                     <div class="tab-body budget-body">
                         <div class="budget-party-selector" id="budget-party-selector-container">
                             <!-- Party select chips -->
                         </div>
+                        
+                        <!-- 예산 퀵 프리셋 노선 단추 그리드 -->
+                        <div class="preset-row-container" style="margin: 4px 0 12px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 12.5px; font-weight: 700; color: var(--text-muted);">⚡ 예산 노선 퀵 프리셋:</span>
+                            <button class="btn btn-secondary btn-small" style="font-size: 12px; height: 32px; padding: 0 12px; font-weight: 700; border-radius: 20px;" onclick="applyBudgetPreset('green')">🌿 생태·환경 올인</button>
+                            <button class="btn btn-secondary btn-small" style="font-size: 12px; height: 32px; padding: 0 12px; font-weight: 700; border-radius: 20px;" onclick="applyBudgetPreset('welfare')">👵 노령·복지 우선</button>
+                            <button class="btn btn-secondary btn-small" style="font-size: 12px; height: 32px; padding: 0 12px; font-weight: 700; border-radius: 20px;" onclick="applyBudgetPreset('market')">🏢 규제완화·시장성장</button>
+                            <button class="btn btn-secondary btn-small" style="font-size: 12px; height: 32px; padding: 0 12px; font-weight: 700; border-radius: 20px;" onclick="applyBudgetPreset('youth')">🎓 청년·일자리 우선</button>
+                            <button class="btn btn-secondary btn-small" style="font-size: 12px; height: 32px; padding: 0 12px; font-weight: 700; border-radius: 20px;" onclick="applyBudgetPreset('defense')">👮 국방·질서안정</button>
+                        </div>
+                        
                         <div class="budget-input-form" id="budget-input-form-area">
                             <!-- Budget inputs for selected party -->
                         </div>
-                        <div class="budget-status-row">
-                            <div class="budget-progress-container">
+                        <div class="budget-status-row" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <div class="budget-progress-container" style="flex: 1; min-width: 250px;">
                                 <span class="budget-progress-label">예산 배분 합계:</span>
                                 <div class="budget-progress-bar-bg">
                                     <div class="budget-progress-bar-fill" id="budget-progress-fill" style="width: 0%"></div>
                                 </div>
                                 <span class="budget-progress-text" id="budget-progress-text">0억 / 100억</span>
                             </div>
-                            <button id="btn-save-budget" class="btn btn-success">💾 이 정당 예산 저장</button>
+                            <button class="btn btn-accent-blue" style="font-weight: 800; font-size: 13px; height: 38px; border-radius: 8px;" onclick="autoFillRemainingBudget()">⚡ 남은 예산 자동 채우기</button>
+                            <button id="btn-save-budget" class="btn btn-success" style="font-weight: 800; font-size: 13px; height: 38px; border-radius: 8px;">💾 이 정당 예산 저장</button>
                         </div>
                         <div class="budget-actions-footer">
                             <button id="btn-run-survey" class="btn btn-primary btn-large" disabled>📊 1차 여론조사 시뮬레이션 실행</button>
@@ -254,25 +266,37 @@
                 <!-- STAGE 5: Policy Revision -->
                 <div class="control-panel-tab hidden" id="panel-stage-5">
                     <div class="tab-header">
-                        <h3>✏️ 2차 정책 수정 및 중도층 공략</h3>
-                        <p class="tab-desc">1차 여론조사의 피드백을 통해 정당들은 예산을 재배분하여 지지층을 결집하거나 중도로 방향을 전환합니다.</p>
+                        <h3>✏️ [정당의 역할 ③] 피드백 수렴 및 공약 수정 (책임 정치)</h3>
+                        <p class="tab-desc">1차 여론조사(선거 피드백) 결과를 토대로 정당들은 이념 정체성 고수(결집)와 외연 확장(중도화) 중 선거 전략을 수정합니다.</p>
                     </div>
                     <div class="tab-body budget-body">
                         <div class="budget-party-selector" id="revise-party-selector-container">
                             <!-- Party select chips for stage 5 -->
                         </div>
+                        
+                        <!-- 예산 퀵 프리셋 노선 단추 그리드 -->
+                        <div class="preset-row-container" style="margin: 4px 0 12px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 12.5px; font-weight: 700; color: var(--text-muted);">⚡ 예산 노선 퀵 프리셋:</span>
+                            <button class="btn btn-secondary btn-small" style="font-size: 12px; height: 32px; padding: 0 12px; font-weight: 700; border-radius: 20px;" onclick="applyBudgetPreset('green')">🌿 생태·환경 올인</button>
+                            <button class="btn btn-secondary btn-small" style="font-size: 12px; height: 32px; padding: 0 12px; font-weight: 700; border-radius: 20px;" onclick="applyBudgetPreset('welfare')">👵 노령·복지 우선</button>
+                            <button class="btn btn-secondary btn-small" style="font-size: 12px; height: 32px; padding: 0 12px; font-weight: 700; border-radius: 20px;" onclick="applyBudgetPreset('market')">🏢 규제완화·시장성장</button>
+                            <button class="btn btn-secondary btn-small" style="font-size: 12px; height: 32px; padding: 0 12px; font-weight: 700; border-radius: 20px;" onclick="applyBudgetPreset('youth')">🎓 청년·일자리 우선</button>
+                            <button class="btn btn-secondary btn-small" style="font-size: 12px; height: 32px; padding: 0 12px; font-weight: 700; border-radius: 20px;" onclick="applyBudgetPreset('defense')">👮 국방·질서안정</button>
+                        </div>
+                        
                         <div class="budget-input-form" id="revise-input-form-area">
                             <!-- Budget inputs for selected party stage 5 -->
                         </div>
-                        <div class="budget-status-row">
-                            <div class="budget-progress-container">
+                        <div class="budget-status-row" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <div class="budget-progress-container" style="flex: 1; min-width: 250px;">
                                 <span class="budget-progress-label">예산 배분 합계:</span>
                                 <div class="budget-progress-bar-bg">
                                     <div class="budget-progress-bar-fill" id="revise-progress-fill" style="width: 0%"></div>
                                 </div>
                                 <span class="budget-progress-text" id="revise-progress-text">0억 / 100억</span>
                             </div>
-                            <button id="btn-save-revision" class="btn btn-success">💾 수정안 저장 및 경로 반영</button>
+                            <button class="btn btn-accent-blue" style="font-weight: 800; font-size: 13px; height: 38px; border-radius: 8px;" onclick="autoFillRemainingBudget()">⚡ 남은 예산 자동 채우기</button>
+                            <button id="btn-save-revision" class="btn btn-success" style="font-weight: 800; font-size: 13px; height: 38px; border-radius: 8px;">💾 수정안 저장 및 경로 반영</button>
                         </div>
                         <div class="budget-actions-footer">
                             <button id="btn-to-stage6" class="btn btn-primary btn-large">🤝 단일화/합당 협상 단계로 이동</button>
@@ -283,8 +307,8 @@
                 <!-- STAGE 6: Alliance / Merger -->
                 <div class="control-panel-tab hidden" id="panel-stage-6">
                     <div class="tab-header">
-                        <h3>🤝 정당 간 후보 단일화 및 합당 협상</h3>
-                        <p class="tab-desc">지지율이 낮거나 지향점이 비슷한 정당들은 연대를 맺을 수 있습니다. 단, 합당에 따른 유권자의 표 이탈/유입을 조심하십시오!</p>
+                        <h3>🤝 [정당의 역할 ④] 정당 연합 및 세력 집약 (단일화·합당)</h3>
+                        <p class="tab-desc">지지성향이 유사한 정당 간의 연합(후보 단일화/합당)을 통해 선거 경쟁력을 확보하는 정치공학적 과정입니다. (이념이 희석되어 기존 지지층이 이탈할 수 있으니 주의하세요!)</p>
                     </div>
                     <div class="tab-body alliance-body">
                         <div class="alliance-selector-grid">
@@ -379,6 +403,29 @@
                                             <div style="font-size: 36px; font-weight: 900; color: #f43f5e;" id="lbl-wasted-votes-pct">0.0%</div>
                                             <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px; font-weight: 600;" id="lbl-wasted-votes-count">(0명 / 100명)</div>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="analysis-chart-box" style="grid-column: span 2; margin-top: 15px;">
+                                    <h4>🗳️ [정치 과정의 환류] 선거 전후 여론 및 의석 종합 대조표</h4>
+                                    <div style="overflow-x: auto; margin-top: 10px;">
+                                        <table class="comparison-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px;">
+                                            <thead>
+                                                <tr style="border-bottom: 2px solid var(--border-color); color: var(--color-primary); font-weight: 800;">
+                                                    <th style="padding: 10px 8px;">정당명</th>
+                                                    <th style="padding: 10px 8px;">전통적 노선 (창당 이념)</th>
+                                                    <th style="padding: 10px 8px; text-align: center;">1차 여론조사 지지율</th>
+                                                    <th style="padding: 10px 8px; text-align: center;">최종 투표 득표율</th>
+                                                    <th style="padding: 10px 8px; text-align: center;">지지율 증감</th>
+                                                    <th style="padding: 10px 8px; text-align: center;">최종 확보 의석수</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="comparison-table-body">
+                                                <!-- dynamic rows -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div id="parliament-layout-report" style="margin-top: 15px; padding: 14px; background: rgba(37,99,235,0.03); border-left: 4px solid var(--color-primary); border-radius: var(--radius-sm); font-size: 13.5px; line-height: 1.6;">
+                                        <!-- dynamic text report on ruling/opposition balance -->
                                     </div>
                                 </div>
                             </div>
