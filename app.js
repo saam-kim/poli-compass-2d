@@ -1585,9 +1585,7 @@ function applyQuickStart() {
     
     renderSetupParties();
     renderLeaderboard();
-    
-    // 정당 등록 완료하고 바로 2단계 유권자 공개로 전이
-    submitRegistration();
+    saveSession();
 }
 
 /**
