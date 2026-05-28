@@ -2765,25 +2765,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // 2. 정당 등록 단계로 앱 시동
     transitionToStage(1, false);
     
-    // 2.5 로컬 세션 자동 감지 및 불러오기 프롬프트
+    // 2.5 로컬 세션 자동 감지 및 자동 복구 (비차단형 안내 배너 제공)
     const hasExistingSession = !!localStorage.getItem("voter_spectrum_session");
     if (hasExistingSession) {
-        setTimeout(() => {
-            const confirmRestore = confirm("이전 수업의 진행 데이터가 감지되었습니다. 복구하여 이어 진행하시겠습니까?\n\n('취소'를 누르시면 완전히 새로운 수업 세션으로 초기화되어 시작합니다.)");
-            if (confirmRestore) {
-                const success = restoreSession();
-                if (success) {
-                    AudioSynth.playSuccess();
-                } else {
-                    alert("이전 세션을 불러오지 못했습니다. 새 수업으로 시작합니다.");
-                    localStorage.removeItem("voter_spectrum_session");
-                    resetGame(false);
-                }
-            } else {
-                localStorage.removeItem("voter_spectrum_session");
-                resetGame(false);
-            }
-        }, 100);
+        const success = restoreSession();
+        if (success) {
+            AudioSynth.playSuccess();
+            setTimeout(() => {
+                showRestoreToast();
+            }, 500);
+        } else {
+            localStorage.removeItem("voter_spectrum_session");
+            resetGame(false);
+        }
     } else {
         resetGame(false);
     }
@@ -3145,4 +3139,115 @@ function getYMeaning(y) {
     if (val <= 20) return "중도 (전통과 개인 자유의 균형적 접근)";
     if (val <= 60) return "개인 자유 확대 / 다양성 / 소수자 인권 존중";
     return "강한 개인 자유 / 다양성 / 규제 철폐 성향";
+}
+
+/**
+ * 이전 세션 데이터 복구 알림 토스트 (비차단형 배너)
+ */
+function showRestoreToast() {
+    const existing = document.getElementById("restore-toast");
+    if (existing) existing.remove();
+    
+    const toast = document.createElement("div");
+    toast.id = "restore-toast";
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 24px;
+        left: 24px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1.5px solid rgba(37, 99, 235, 0.25);
+        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.15);
+        padding: 14px 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        z-index: 99999;
+        font-family: var(--font-display);
+        animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: all 0.3s ease;
+    `;
+    
+    const content = document.createElement("div");
+    content.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--text-main);
+    `;
+    content.innerHTML = `
+        <span style="font-size: 18px;">🔄</span>
+        <span>이전 수업 데이터가 자동으로 복구되었습니다.</span>
+    `;
+    
+    const actions = document.createElement("div");
+    actions.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    `;
+    
+    const resetBtn = document.createElement("button");
+    resetBtn.innerText = "새로 시작";
+    resetBtn.className = "btn btn-secondary btn-small";
+    resetBtn.style.cssText = `
+        padding: 6px 12px;
+        font-size: 11px;
+        height: 28px;
+        border-radius: 6px;
+        font-weight: 800;
+        cursor: pointer;
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+    `;
+    resetBtn.addEventListener("click", () => {
+        if (confirm("정말로 모든 수업 진행 데이터를 초기화하고 처음부터 완전히 새롭게 시작하시겠습니까?\n(저장되어 있던 세션 데이터도 모두 사라집니다.)")) {
+            localStorage.removeItem("voter_spectrum_session");
+            resetGame(false);
+            toast.style.opacity = "0";
+            toast.style.transform = "translateY(20px)";
+            setTimeout(() => toast.remove(), 300);
+        }
+    });
+    
+    const closeBtn = document.createElement("button");
+    closeBtn.innerHTML = "✕";
+    closeBtn.style.cssText = `
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 0 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    closeBtn.addEventListener("click", () => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(20px)";
+        setTimeout(() => toast.remove(), 300);
+    });
+    
+    actions.appendChild(resetBtn);
+    actions.appendChild(closeBtn);
+    
+    toast.appendChild(content);
+    toast.appendChild(actions);
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (document.body.contains(toast)) {
+            toast.style.opacity = "0";
+            toast.style.transform = "translateY(20px)";
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 8000);
 }
